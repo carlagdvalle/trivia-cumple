@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia Kawaii • Desafío de Cultura General</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Quicksand & Zen Maru Gothic para un toque japonés suave y redondeado -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Zen Maru Gothic"', '"Quicksand"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: {
+                            50: '#FFFDF9',
+                            100: '#FDF8F0',
+                            200: '#F7EFE2',
+                        },
+                        sakura: {
+                            100: '#FFE8EE',
+                            200: '#FFD1DD',
+                            300: '#FFB3C6',
+                            400: '#FF8FA3',
+                            500: '#FB6F92',
+                        },
+                        matcha: {
+                            100: '#EBF5EC',
+                            200: '#D4E8D6',
+                            300: '#B5D6B8',
+                            400: '#8FBC94',
+                            500: '#6B9E70',
+                        },
+                        cocoa: {
+                            600: '#6D5D55',
+                            700: '#52443E',
+                            800: '#3D312C',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 4s ease-in-out infinite',
+                        'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-6px)' },
+                        },
+                        pop: {
+                            '0%': { transform: 'scale(0.92)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #FDF8F0;
+            background-image: radial-gradient(#FFD1DD 1px, transparent 1px), radial-gradient(#D4E8D6 1px, #FDF8F0 1px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+            color: #52443E;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Estilo de tarjeta estilo papel japonés Washi suave */
+        .kawaii-card {
+            background: rgba(255, 253, 249, 0.96);
+            backdrop-filter: blur(8px);
+            border: 2px solid #F7EFE2;
+            box-shadow: 0 12px 30px -10px rgba(109, 93, 85, 0.12);
+        }
+
+        /* Botones táctiles suaves */
+        .btn-kawaii {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .btn-kawaii:active {
+            transform: scale(0.96);
+        }
+
+        /* Barra de progreso fluida para los 7 segundos */
+        #timer-bar {
+            transition: width 0.1s linear, background-color 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-x-hidden select-none">
+
+    <!-- Decoración minimalista flotante -->
+    <div class="fixed top-6 left-6 text-sakura-300 opacity-60 pointer-events-none animate-float">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C13.5 5 16.5 6.5 19.5 7C16.5 8.5 15 11.5 14.5 14.5C13 11.5 10 10 7 9.5C10 8 11.5 5 12 2Z"/>
+        </svg>
+    </div>
+    <div class="fixed bottom-12 right-8 text-matcha-300 opacity-60 pointer-events-none animate-float" style="animation-delay: 1.5s;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="5"/>
+            <circle cx="12" cy="4" r="2.5"/>
+            <circle cx="12" cy="20" r="2.5"/>
+            <circle cx="4" cy="12" r="2.5"/>
+            <circle cx="20" cy="12" r="2.5"/>
+        </svg>
+    </div>
+
+    <!-- Botón discreto de Anfitriona (esquina superior derecha) -->
+    <button id="open-host-btn" aria-label="Acceso anfitrión" class="fixed top-4 right-4 z-30 p-2.5 rounded-full bg-cream-50/80 hover:bg-sakura-100 text-cocoa-600/50 hover:text-sakura-500 border border-cream-200 shadow-sm transition-all">
+        <!-- Icono minimalista de huellita / destello -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="4" r="2"/>
+            <circle cx="18" cy="8" r="2"/>
+            <circle cx="20" cy="16" r="2"/>
+            <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/>
+        </svg>
+    </button>
+
+    <!-- Contenedor Principal -->
+    <main class="w-full max-w-md mx-auto z-10">
+
+        <!-- 1. PANTALLA DE BIENVENIDA -->
+        <section id="screen-welcome" class="kawaii-card rounded-3xl p-7 sm:p-8 text-center animate-pop">
+            <!-- Ilustración SVG Dango Kawaii -->
+            <div class="mx-auto w-24 h-24 mb-4 flex items-center justify-center bg-sakura-100/70 rounded-full border-2 border-sakura-200">
+                <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                    <!-- Palito de bambú -->
+                    <line x1="14" y1="50" x2="50" y2="14" stroke="#C8A98E" stroke-width="4" stroke-linecap="round"/>
+                    <!-- Bolita Matcha (Verde) -->
+                    <circle cx="23" cy="41" r="9.5" fill="#B5D6B8" stroke="#52443E" stroke-width="2"/>
+                    <!-- Bolita Crema (Blanca) -->
+                    <circle cx="33" cy="31" r="9.5" fill="#FFFDF9" stroke="#52443E" stroke-width="2"/>
+                    <!-- Bolita Sakura (Rosa) con carita -->
+                    <circle cx="43" cy="21" r="9.5" fill="#FFB3C6" stroke="#52443E" stroke-width="2"/>
+                    <circle cx="40.5" cy="20" r="1.2" fill="#52443E"/>
+                    <circle cx="45.5" cy="20" r="1.2" fill="#52443E"/>
+                    <path d="M42 22.5Q43 23.8 44 22.5" stroke="#52443E" stroke-width="1.3" stroke-linecap="round"/>
+                </svg>
+            </div>
+
+            <span class="inline-block px-3 py-1 rounded-full bg-matcha-100 text-matcha-500 text-xs font-bold tracking-wider uppercase mb-2">
+                ✦ Edición Especial ✦
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-bold text-cocoa-800 mb-2">
+                Trivia de Cultura General
+            </h1>
+            <p class="text-sm text-cocoa-600 mb-6 leading-relaxed">
+                10 preguntas rápidas. Tienes <strong class="text-sakura-500">7 segundos</strong> para responder cada una antes de que avance sola.
+            </p>
+
+            <div class="text-left mb-5">
+                <label for="player-name" class="block text-xs font-bold text-cocoa-700 uppercase tracking-wide mb-2 ml-1">
+                    Tu Nombre o Apodo
+                </label>
+                <input 
+                    type="text" 
+                    id="player-name" 
+                    maxlength="28"
+                    placeholder="Ej. Sakura, Leo, Mochi..." 
+                    class="w-full px-4 py-3.5 rounded-2xl bg-cream-100 border-2 border-cream-200 focus:border-sakura-400 focus:bg-white focus:outline-none text-cocoa-800 font-semibold placeholder-cocoa-600/40 transition-colors"
+                />
+                <p id="name-error" class="hidden text-xs text-sakura-500 font-semibold mt-1.5 ml-1">
+                    Por favor escribe tu nombre para comenzar ✿
+                </p>
+            </div>
+
+            <button id="start-btn" class="btn-kawaii w-full py-4 rounded-2xl bg-sakura-400 hover:bg-sakura-500 text-white font-bold text-base shadow-md shadow-sakura-200 flex items-center justify-center gap-2">
+                <span>Comenzar Desafío</span>
+                <span>🌸</span>
+            </button>
+
+            <p class="text-[11px] text-cocoa-600/70 mt-4 flex items-center justify-center gap-1">
+                <span>🔒</span> Modo incógnito: tus respuestas se envían directo a la anfitriona.
+            </p>
+        </section>
+
+        <!-- 2. PANTALLA DE JUEGO (PREGUNTAS + TIMER 7s) -->
+        <section id="screen-quiz" class="hidden kawaii-card rounded-3xl p-6 sm:p-7 animate-pop">
+            <!-- Cabecera: Progreso y Reloj -->
+            <div class="flex items-center justify-between mb-3">
+                <span id="question-counter" class="px-3 py-1 rounded-full bg-cream-200 text-cocoa-700 text-xs font-bold">
+                    Pregunta 1 / 10
+                </span>
+                <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-sakura-100 text-sakura-500 font-bold text-xs">
+                    <span>⏱️</span>
+                    <span id="timer-text">7.0s</span>
+                </div>
+            </div>
+
+            <!-- Barra de tiempo de 7 segundos -->
+            <div class="w-full h-2.5 bg-cream-200 rounded-full overflow-hidden mb-6">
+                <div id="timer-bar" class="h-full bg-matcha-400 rounded-full" style="width: 100%;"></div>
+            </div>
+
+            <!-- Texto de la Pregunta -->
+            <div class="min-h-[84px] flex items-center justify-center mb-6">
+                <h2 id="question-text" class="text-lg sm:text-xl font-bold text-cocoa-800 text-center leading-snug">
+                    Cargando pregunta...
+                </h2>
+            </div>
+
+            <!-- Opciones de Respuesta -->
+            <div id="options-container" class="space-y-3">
+                <!-- Se generan dinámicamente -->
+            </div>
+        </section>
+
+        <!-- 3. PANTALLA FINAL INCÓGNITA (SIN MOSTRAR PUNTAJE AL JUGADOR) -->
+        <section id="screen-finished" class="hidden kawaii-card rounded-3xl p-7 sm:p-8 text-center animate-pop">
+            <!-- Sobre con corazón / sello kawaii -->
+            <div class="mx-auto w-24 h-24 mb-5 flex items-center justify-center bg-matcha-100 rounded-full border-2 border-matcha-200">
+                <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+                    <rect x="10" y="18" width="44" height="28" rx="6" fill="#FFFDF9" stroke="#52443E" stroke-width="2.2"/>
+                    <path d="M12 20L32 35L52 20" stroke="#52443E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- Sello de corazón sakura -->
+                    <path d="M32 39C32 39 25 34.2 25 29.8C25 27.6 26.7 26 28.8 26C30.1 26 31.3 26.7 32 27.7C32.7 26.7 33.9 26 35.2 26C37.3 26 39 27.6 39 29.8C39 34.2 32 39 32 39Z" fill="#FF8FA3" stroke="#52443E" stroke-width="1.5"/>
+                </svg>
+            </div>
+
+            <span class="inline-block px-3 py-1 rounded-full bg-sakura-100 text-sakura-500 text-xs font-bold mb-2">
+                ✨ ¡Participación Registrada! ✨
+            </span>
+            <h2 class="text-2xl font-bold text-cocoa-800 mb-2">
+                ¡Muchas gracias, <span id="finished-player-name" class="text-sakura-500">Jugador</span>!
+            </h2>
+            <p class="text-sm text-cocoa-600 leading-relaxed mb-6">
+                Tus respuestas han sido selladas y enviadas de forma <strong class="text-cocoa-800">100% incógnita</strong> a la anfitriona del juego.
+            </p>
+
+            <div class="p-4 rounded-2xl bg-cream-100 border border-cream-200 text-xs text-cocoa-600 space-y-1.5 mb-6">
+                <p class="font-bold text-cocoa-700">🤫 Resultados Confidenciales</p>
+                <p>Por reglas del juego, el puntaje permanece oculto para los participantes. ¡Pronto descubrirás cómo te fue!</p>
+                <p id="save-status-badge" class="text-[11px] font-bold text-matcha-500 pt-1">
+                    ☁️ Sincronizando con la nube...
+                </p>
+            </div>
+
+            <button id="play-again-btn" class="btn-kawaii w-full py-3.5 rounded-2xl bg-cream-200 hover:bg-cream-300 text-cocoa-700 font-bold text-sm">
+                Volver al inicio 🍵
+            </button>
+        </section>
+
+    </main>
+
+    <!-- MODAL DE CONTRASEÑA SECRETA DE ANFITRIONA -->
+    <div id="modal-password" class="hidden fixed inset-0 z-50 bg-cocoa-800/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="kawaii-card w-full max-w-xs rounded-3xl p-6 text-center animate-pop">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-sakura-100 text-sakura-500 flex items-center justify-center text-xl">
+                🔐
+            </div>
+            <h3 class="text-lg font-bold text-cocoa-800 mb-1">Acceso Anfitriona</h3>
+            <p class="text-xs text-cocoa-600 mb-4">Ingresa tu clave privada para ver el historial de puntajes.</p>
+            
+            <input 
+                type="password" 
+                id="host-password-input" 
+                placeholder="••••••••••" 
+                class="w-full px-4 py-3 rounded-2xl bg-cream-100 border-2 border-cream-200 focus:border-sakura-400 focus:bg-white focus:outline-none text-center font-bold tracking-widest text-cocoa-800 mb-2"
+            />
+            <p id="password-error" class="hidden text-xs text-sakura-500 font-bold mb-3">
+                Clave incorrecta. Intenta nuevamente.
+            </p>
+
+            <div class="flex gap-2 mt-3">
+                <button id="close-password-btn" class="flex-1 py-2.5 rounded-xl bg-cream-200 text-cocoa-700 font-bold text-xs">
+                    Cancelar
+                </button>
+                <button id="submit-password-btn" class="flex-1 py-2.5 rounded-xl bg-sakura-400 text-white font-bold text-xs shadow-sm">
+                    Entrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL PRIVADO DE RESULTADOS (SOLO VISIBLE CON LA CLAVE) -->
+    <div id="modal-dashboard" class="hidden fixed inset-0 z-50 bg-cocoa-800/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+        <div class="kawaii-card w-full max-w-lg max-h-[90vh] rounded-3xl flex flex-col overflow-hidden animate-pop">
+            <!-- Header Panel -->
+            <div class="p-5 bg-sakura-100/70 border-b border-sakura-200 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-sakura-500">Panel Secreto • Carla</span>
+                    <h3 class="text-lg font-bold text-cocoa-800 flex items-center gap-1.5">
+                        <span>Historial de Jugadores</span>
+                        <span>🌸</span>
+                    </h3>
+                </div>
+                <button id="close-dashboard-btn" class="w-9 h-9 rounded-full bg-white text-cocoa-700 font-bold flex items-center justify-center shadow-sm hover:bg-cream-100">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Lista de puntajes en tiempo real -->
+            <div class="p-5 overflow-y-auto flex-1 space-y-3" id="scores-list">
+                <div class="text-center py-8 text-sm text-cocoa-600">
+                    Cargando historial desde la nube...
+                </div>
+            </div>
+
+            <!-- Acciones de Correo y Gestión -->
+            <div class="p-4 bg-cream-100 border-t border-cream-200 space-y-2.5">
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <a id="mailto-btn" href="mailto:carlagbvalle@gmail.com" class="btn-kawaii flex-1 py-3 px-4 rounded-2xl bg-matcha-400 hover:bg-matcha-500 text-white font-bold text-xs text-center flex items-center justify-center gap-1.5 shadow-sm">
+                        <span>✉️ Enviar resumen a carlagbvalle@gmail.com</span>
+                    </a>
+                    <button id="copy-results-btn" class="btn-kawaii py-3 px-4 rounded-2xl bg-white border border-cream-200 hover:bg-cream-50 text-cocoa-700 font-bold text-xs flex items-center justify-center gap-1.5">
+                        <span>📋 Copiar</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <p class="text-[10px] text-cocoa-600 leading-tight max-w-[70%]">
+                        * Todos los celulares guardan aquí automáticamente en tiempo real. (El envío de correo automático sin abrir tu app requiere conectar un servicio externo como EmailJS/Formspree).
+                    </p>
+                    <button id="ask-clear-btn" class="text-[11px] font-bold text-sakura-500 hover:underline px-2 py-1">
+                        Borrar historial
+                    </button>
+                </div>
+
+                <!-- Confirmación inline para borrar historial (sin usar confirm()) -->
+                <div id="confirm-clear-box" class="hidden p-3 rounded-2xl bg-sakura-100 border border-sakura-200 flex items-center justify-between gap-2">
+                    <span class="text-xs font-bold text-cocoa-800">¿Seguro que deseas borrar todo?</span>
+                    <div class="flex gap-1.5">
+                        <button id="cancel-clear-btn" class="px-3 py-1.5 rounded-xl bg-white text-xs font-bold text-cocoa-700">No</button>
+                        <button id="confirm-clear-btn" class="px-3 py-1.5 rounded-xl bg-sakura-500 text-xs font-bold text-white">Sí, borrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notificación Toast Flotante -->
+    <div id="toast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full bg-cocoa-800 text-white text-xs font-bold shadow-lg animate-pop">
+        Mensaje
+    </div>
+
+    <!-- Lógica del Juego y Persistencia en Firebase Firestore -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ==========================================
+        // 1. CONFIGURACIÓN DE FIREBASE Y AUTENTICACIÓN
+        // ==========================================
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'kawaii-trivia-default';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let allScores = [];
+
+        async function initFirebase() {
+            if (!firebaseConfig) {
+                console.warn("Configuración de Firebase no detectada en este entorno.");
+                return;
+            }
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // Regla 3: Autenticar primero antes de cualquier consulta
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    if (user) {
+                        listenToPublicScores();
+                    }
+                });
+            } catch (error) {
+                console.error("Error inicializando Firebase:", error);
+            }
+        }
+
+        // Ruta pública compartida para que todos los teléfonos guarden y la anfitriona lea
+        function getScoresCollection() {
+            return collection(db, 'artifacts', appId, 'public', 'data', 'trivia_scores');
+        }
+
+        function listenToPublicScores() {
+            if (!db || !currentUser) return;
+            const scoresRef = getScoresCollection();
+
+            // Regla 2: Consulta simple sin orderBy, ordenamos en memoria
+            onSnapshot(scoresRef, (snapshot) => {
+                const list = [];
+                snapshot.forEach((docSnap) => {
+                    list.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                // Ordenar por fecha más reciente primero
+                list.sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0));
+                allScores = list;
+                renderDashboardScores();
+            }, (error) => {
+                console.error("Error leyendo historial:", error);
+            });
+        }
+
+        async function savePlayerResult(playerName, score, total) {
+            const badge = document.getElementById('save-status-badge');
+            if (!db || !currentUser) {
+                badge.textContent = "⚠️ Modo local (sin conexión a nube)";
+                return;
+            }
+            try {
+                await addDoc(getScoresCollection(), {
+                    name: playerName,
+                    score: score,
+                    total: total,
+                    createdAtMs: Date.now(),
+                    createdAtServer: serverTimestamp()
+                });
+                badge.textContent = "☁️ Guardado exitosamente en el historial secreto";
+            } catch (error) {
+                console.error("Error guardando puntaje:", error);
+                badge.textContent = "⚠️ No se pudo sincronizar con la nube";
+            }
+        }
+
+        // ==========================================
+        // 2. BANCO DE 10 PREGUNTAS DE CULTURA GENERAL
+        // ==========================================
+        const QUESTIONS = [
+            {
+                q: "¿Cuál es el océano más grande y profundo del planeta Tierra?",
+                options: ["Océano Atlántico", "Océano Pacífico", "Océano Índico", "Océano Ártico"],
+                answer: 1
+            },
+            {
+                q: "¿En qué país se originó la ceremonia tradicional del té Matcha?",
+                options: ["Corea del Sur", "China", "Japón", "Tailandia"],
+                answer: 2
+            },
+            {
+                q: "¿Cuál es el planeta más cercano al Sol en nuestro sistema solar?",
+                options: ["Venus", "Marte", "Mercurio", "Saturno"],
+                answer: 2
+            },
+            {
+                q: "¿Quién pintó la famosa obra 'La noche estrellada'?",
+                options: ["Vincent van Gogh", "Claude Monet", "Pablo Picasso", "Salvador Dalí"],
+                answer: 0
+            },
+            {
+                q: "¿Cuál es el elemento químico representado con el símbolo 'Au'?",
+                options: ["Plata", "Aluminio", "Oro", "Argón"],
+                answer: 2
+            },
+            {
+                q: "¿Cuántos huesos tiene aproximadamente el cuerpo humano adulto?",
+                options: ["186 huesos", "206 huesos", "226 huesos", "256 huesos"],
+                answer: 1
+            },
+            {
+                q: "¿Cuál es la capital de Australia?",
+                options: ["Sídney", "Melbourne", "Canberra", "Brisbane"],
+                answer: 2
+            },
+            {
+                q: "¿Qué instrumento musical tiene 88 teclas en su versión estándar?",
+                options: ["Acordeón", "Arpa", "Piano", "Órgano eléctrico"],
+                answer: 2
+            },
+            {
+                q: "¿Cuál es el animal terrestre más rápido del mundo?",
+                options: ["León", "Guepardo", "Antílope", "Halcón peregrino"],
+                answer: 1
+            },
+            {
+                q: "¿En qué año llegó el ser humano por primera vez a la Luna?",
+                options: ["1965", "1969", "1972", "1959"],
+                answer: 1
+            }
+        ];
+
+        // ==========================================
+        // 3. ESTADO Y LÓGICA DEL JUEGO (7 SEGUNDOS)
+        // ==========================================
+        const SECONDS_PER_QUESTION = 7;
+        let playerName = "";
+        let currentIndex = 0;
+        let score = 0;
+        let timerInterval = null;
+        let timeLeft = SECONDS_PER_QUESTION;
+        let isTransitioning = false;
+
+        // Referencias DOM
+        const screenWelcome = document.getElementById('screen-welcome');
+        const screenQuiz = document.getElementById('screen-quiz');
+        const screenFinished = document.getElementById('screen-finished');
+        const playerNameInput = document.getElementById('player-name');
+        const nameError = document.getElementById('name-error');
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2600);
+        }
+
+        function switchScreen(target) {
+            [screenWelcome, screenQuiz, screenFinished].forEach(s => s.classList.add('hidden'));
+            target.classList.remove('hidden');
+        }
+
+        document.getElementById('start-btn').addEventListener('click', () => {
+            const val = playerNameInput.value.trim();
+            if (!val) {
+                nameError.classList.remove('hidden');
+                playerNameInput.focus();
+                return;
+            }
+            nameError.classList.add('hidden');
+            playerName = val;
+            currentIndex = 0;
+            score = 0;
+            switchScreen(screenQuiz);
+            loadQuestion();
+        });
+
+        playerNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('start-btn').click();
+        });
+
+        function loadQuestion() {
+            isTransitioning = false;
+            clearInterval(timerInterval);
+
+            const qData = QUESTIONS[currentIndex];
+            document.getElementById('question-counter').textContent = `Pregunta ${currentIndex + 1} / ${QUESTIONS.length}`;
+            document.getElementById('question-text').textContent = qData.q;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+            qData.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "btn-kawaii w-full p-4 rounded-2xl bg-cream-100 hover:bg-sakura-100 border-2 border-cream-200 hover:border-sakura-300 text-left flex items-center gap-3 transition-colors";
+                btn.innerHTML = `
+                    <span class="w-8 h-8 rounded-full bg-white text-cocoa-700 font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                        ${letters[idx]}
+                    </span>
+                    <span class="font-semibold text-sm sm:text-base text-cocoa-800">${optText}</span>
+                `;
+                btn.addEventListener('click', () => handleAnswer(idx, btn));
+                optionsContainer.appendChild(btn);
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            timeLeft = SECONDS_PER_QUESTION;
+            const timerText = document.getElementById('timer-text');
+            const timerBar = document.getElementById('timer-bar');
+
+            timerBar.style.width = '100%';
+            timerBar.className = 'h-full bg-matcha-400 rounded-full';
+            timerText.textContent = `${timeLeft.toFixed(1)}s`;
+
+            const stepMs = 100;
+            timerInterval = setInterval(() => {
+                timeLeft = Math.max(0, timeLeft - 0.1);
+                timerText.textContent = `${timeLeft.toFixed(1)}s`;
+                const pct = (timeLeft / SECONDS_PER_QUESTION) * 100;
+                timerBar.style.width = `${pct}%`;
+
+                if (timeLeft <= 2.5) {
+                    timerBar.className = 'h-full bg-sakura-400 rounded-full';
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    advanceToNextQuestion();
+                }
+            }, stepMs);
+        }
+
+        function handleAnswer(selectedIndex, selectedBtn) {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            clearInterval(timerInterval);
+
+            // Verificamos internamente SIN revelar si fue correcta o incorrecta (modo incógnito)
+            if (selectedIndex === QUESTIONS[currentIndex].answer) {
+                score++;
+            }
+
+            // Feedback visual neutro (solo confirma que tocó esa opción)
+            selectedBtn.classList.remove('bg-cream-100', 'border-cream-200');
+            selectedBtn.classList.add('bg-sakura-200', 'border-sakura-400');
+
+            setTimeout(() => {
+                advanceToNextQuestion();
+            }, 320);
+        }
+
+        function advanceToNextQuestion() {
+            currentIndex++;
+            if (currentIndex < QUESTIONS.length) {
+                loadQuestion();
+            } else {
+                finishGame();
+            }
+        }
+
+        async function finishGame() {
+            clearInterval(timerInterval);
+            document.getElementById('finished-player-name').textContent = playerName;
+            switchScreen(screenFinished);
+            await savePlayerResult(playerName, score, QUESTIONS.length);
+        }
+
+        document.getElementById('play-again-btn').addEventListener('click', () => {
+            playerNameInput.value = '';
+            switchScreen(screenWelcome);
+        });
+
+        // ==========================================
+        // 4. ACCESO SECRETO DE ANFITRIONA
+        // ==========================================
+        const SECRET_KEY = "MONITO2026";
+        const modalPassword = document.getElementById('modal-password');
+        const modalDashboard = document.getElementById('modal-dashboard');
+        const hostPasswordInput = document.getElementById('host-password-input');
+        const passwordError = document.getElementById('password-error');
+
+        document.getElementById('open-host-btn').addEventListener('click', () => {
+            hostPasswordInput.value = '';
+            passwordError.classList.add('hidden');
+            modalPassword.classList.remove('hidden');
+            setTimeout(() => hostPasswordInput.focus(), 100);
+        });
+
+        document.getElementById('close-password-btn').addEventListener('click', () => {
+            modalPassword.classList.add('hidden');
+        });
+
+        function checkHostPassword() {
+            const entered = hostPasswordInput.value.trim();
+            if (entered === SECRET_KEY) {
+                modalPassword.classList.add('hidden');
+                modalDashboard.classList.remove('hidden');
+                renderDashboardScores();
+            } else {
+                passwordError.classList.remove('hidden');
+                hostPasswordInput.value = '';
+                hostPasswordInput.focus();
+            }
+        }
+
+        document.getElementById('submit-password-btn').addEventListener('click', checkHostPassword);
+        hostPasswordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkHostPassword();
+        });
+
+        document.getElementById('close-dashboard-btn').addEventListener('click', () => {
+            modalDashboard.classList.add('hidden');
+            document.getElementById('confirm-clear-box').classList.add('hidden');
+        });
+
+        function formatDate(ms) {
+            if (!ms) return 'Reciente';
+            const d = new Date(ms);
+            return d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' }) + ' • ' +
+                   d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function renderDashboardScores() {
+            const container = document.getElementById('scores-list');
+            const mailtoBtn = document.getElementById('mailto-btn');
+
+            if (allScores.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-cocoa-600/70 text-sm">
+                        <p class="text-2xl mb-2">🍵</p>
+                        <p class="font-bold">Aún no hay participantes registrados</p>
+                        <p class="text-xs mt-1">Comparte el link para que empiecen a jugar.</p>
+                    </div>
+                `;
+                mailtoBtn.href = "mailto:carlagbvalle@gmail.com?subject=Resultados%20Trivia%20Kawaii";
+                return;
+            }
+
+            container.innerHTML = '';
+            let summaryLines = ["Resultados Trivia Kawaii:\n"];
+
+            allScores.forEach((item, index) => {
+                const dateStr = formatDate(item.createdAtMs);
+                summaryLines.push(`${index + 1}. ${item.name}: ${item.score}/${item.total} pts (${dateStr})`);
+
+                const row = document.createElement('div');
+                row.className = "p-3.5 rounded-2xl bg-cream-50 border border-cream-200 flex items-center justify-between gap-3";
+                row.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-8 h-8 rounded-full bg-sakura-100 text-sakura-500 font-bold text-xs flex items-center justify-center shrink-0">
+                            #${index + 1}
+                        </span>
+                        <div class="truncate">
+                            <p class="font-bold text-sm text-cocoa-800 truncate">${escapeHtml(item.name)}</p>
+                            <p class="text-[11px] text-cocoa-600">${dateStr}</p>
+                        </div>
+                    </div>
+                    <div class="px-3 py-1.5 rounded-xl bg-matcha-100 text-matcha-500 font-bold text-sm shrink-0">
+                        ${item.score} / ${item.total}
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+
+            const subject = encodeURIComponent(`Resultados Trivia Kawaii (${allScores.length} jugadores)`);
+            const body = encodeURIComponent(summaryLines.join('\n'));
+            mailtoBtn.href = `mailto:carlagbvalle@gmail.com?subject=${subject}&body=${body}`;
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Copiar resultados al portapapeles
+        document.getElementById('copy-results-btn').addEventListener('click', () => {
+            if (allScores.length === 0) {
+                showToast("No hay resultados para copiar");
+                return;
+            }
+            const text = allScores.map((s, i) => `${i + 1}. ${s.name}: ${s.score}/${s.total} pts (${formatDate(s.createdAtMs)})`).join('\n');
+            const textarea = document.createElement('textarea');
+            textarea.value = `🌸 Resultados Trivia Kawaii:\n\n${text}`;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast("¡Historial copiado al portapapeles! 📋");
+        });
+
+        // Borrar historial completo
+        const confirmClearBox = document.getElementById('confirm-clear-box');
+        document.getElementById('ask-clear-btn').addEventListener('click', () => {
+            if (allScores.length === 0) return;
+            confirmClearBox.classList.remove('hidden');
+        });
+        document.getElementById('cancel-clear-btn').addEventListener('click', () => {
+            confirmClearBox.classList.add('hidden');
+        });
+        document.getElementById('confirm-clear-btn').addEventListener('click', async () => {
+            confirmClearBox.classList.add('hidden');
+            if (!db || !currentUser) return;
+            try {
+                const promises = allScores.map(item => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'trivia_scores', item.id)));
+                await Promise.all(promises);
+                showToast("Historial borrado ✨");
+            } catch (err) {
+                console.error("Error al borrar:", err);
+                showToast("Error al borrar registros");
+            }
+        });
+
+        // Iniciar conexión al cargar la página
+        window.addEventListener('DOMContentLoaded', initFirebase);
+    </script>
+</body>
+</html>
